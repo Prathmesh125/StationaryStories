@@ -4,10 +4,11 @@
 'use client';
 
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Upload, Loader2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -39,6 +40,8 @@ interface StockItem {
 export function Stock() {
   const [stockData, setStockData] = useState<StockItem[]>([]);
   const [formData, setFormData] = useState({ name: '', current: 0 });
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchStock() {
@@ -97,7 +100,7 @@ export function Stock() {
       const res = await fetch('/api/stock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name: formData.name, quantity: formData.current }),
       });
       if (!res.ok) throw new Error('Failed to update stock');
       const updatedStock = await res.json();
@@ -108,11 +111,81 @@ export function Stock() {
     }
   }
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const base64String = reader.result as string;
+        
+        // Call the vision API
+        const res = await fetch('/api/vision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64String, mimeType: file.type }),
+        });
+
+        if (!res.ok) throw new Error('Failed to process image');
+        
+        const data = await res.json();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const items = data.items || [];
+        
+        // Update stock for each item
+        let updatedStock = [...stockData];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+        for (const item of items as any[]) {
+          const stockRes = await fetch('/api/stock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: item.name, quantity: item.quantity }),
+          });
+          if (stockRes.ok) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            updatedStock = await stockRes.json();
+          }
+        }
+        
+        setStockData(updatedStock);
+        await fetchPredictions(updatedStock);
+      } catch (error) {
+        console.error('Error uploading invoice:', error);
+      } finally {
+        setIsScanning(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className='space-y-6'>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Stock Management</CardTitle>
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+            />
+            <Button 
+              variant="outline" 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isScanning}
+            >
+              {isScanning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              {isScanning ? 'Scanning...' : 'Scan Invoice'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <form className='space-y-4' onSubmit={handleUpdateStock}>

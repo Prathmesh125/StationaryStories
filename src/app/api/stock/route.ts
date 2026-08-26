@@ -1,31 +1,35 @@
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongoose';
+import Stock from '@/models/Stock';
 
-const stockData = [
-  { name: 'Engineering Maths 1', current: 500, reorder: 100, predicted: 450 },
-  { name: 'Engineering Maths 2', current: 300, reorder: 50, predicted: 280 },
-  { name: 'Engineering Chemistry', current: 600, reorder: 150, predicted: 580 },
-  { name: 'Engineering Physics', current: 400, reorder: 75, predicted: 420 },
-  { name: 'Engineering Mechanics', current: 200, reorder: 40, predicted: 190 },
-];
-
-// GET request to fetch stock data
 export async function GET() {
-  return NextResponse.json(stockData);
+  try {
+    await connectDB();
+    const stockData = await Stock.find({});
+    return NextResponse.json(stockData);
+  } catch (error) {
+    console.error('Error fetching stock:', error);
+    return NextResponse.json({ error: 'Failed to fetch stock' }, { status: 500 });
+  }
 }
 
-// POST request to update stock data
 export async function POST(req: Request) {
   try {
+    await connectDB();
     const body = (await req.json()) as { name: string; quantity: number };
     const { name, quantity } = body;
-    const itemIndex = stockData.findIndex((item) => item.name === name);
 
-    if (itemIndex !== -1) {
-      if (stockData[itemIndex]) {
-        stockData[itemIndex].current += quantity;
-      }
+    if (!name) {
+      return NextResponse.json({ error: 'Item name is required' }, { status: 400 });
+    }
+
+    let stockItem = await Stock.findOne({ name });
+    
+    if (stockItem) {
+      stockItem.current += quantity;
+      await stockItem.save();
     } else {
-      stockData.push({
+      stockItem = await Stock.create({
         name,
         current: quantity,
         reorder: 50,
@@ -33,8 +37,10 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json(stockData);
-  } catch {
+    const allStock = await Stock.find({});
+    return NextResponse.json(allStock);
+  } catch (error) {
+    console.error('Error updating stock:', error);
     return NextResponse.json({ error: 'An error occurred while updating stock' }, { status: 500 });
   }
 }

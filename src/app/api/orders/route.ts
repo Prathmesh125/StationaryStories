@@ -1,79 +1,55 @@
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/mongoose';
+import Order from '@/models/Order';
 
-interface Order {
-  id: string;
-  customer: string;
-  item: string;
-  status: 'Pending' | 'Ordered' | 'Ready'; // Restrict valid statuses
-}
-
-// Mutable orders array (avoids issues in serverless environments)
-// eslint-disable-next-line prefer-const
-let orders: Order[] = [
-  {
-    id: 'RX001',
-    customer: 'Ayush Virulkar',
-    item: 'Engineering Physics',
-    status: 'Ready',
-  },
-  {
-    id: 'RX002',
-    customer: 'Swaroop Patil',
-    item: 'Casio FX991 ES Plus',
-    status: 'Ordered',
-  },
-  {
-    id: 'RX003',
-    customer: 'Manish Narkhede',
-    item: 'Engineering Mechanics',
-    status: 'Pending',
-  },
-  {
-    id: 'RX004',
-    customer: 'Niraj Shevade',
-    item: 'Theory of Computation',
-    status: 'Ready',
-  },
-  {
-    id: 'RX005',
-    customer: 'Karan Nigal',
-    item: 'Head First Java',
-    status: 'Ordered',
-  },
-];
-
-// GET: Fetch all orders
 export async function GET() {
-  return NextResponse.json(orders);
+  try {
+    await connectDB();
+    const orders = await Order.find({});
+    
+    const formattedOrders = orders.map(order => ({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      id: order._id.toString(),
+      customer: order.customer,
+      item: order.item,
+      status: order.status
+    }));
+    return NextResponse.json(formattedOrders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+  }
 }
 
-// POST: Create a new order
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as Partial<Order>;
-    const { id, customer, item, status } = body;
+    await connectDB();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const body = await req.json();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { customer, item, status } = body; 
 
-    // Validate required fields
-    if (!id || !customer || !item || !status) {
+    if (!customer || !item) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: customer, item' },
         { status: 400 },
       );
     }
 
-    // Validate status value
-    if (!['Pending', 'Ordered', 'Ready'].includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status value' },
-        { status: 400 },
-      );
-    }
+    const newOrder = await Order.create({
+      customer,
+      item,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      status: status || 'Pending'
+    });
 
-    // Create and store new order
-    const newOrder: Order = { id, customer, item, status };
-    orders.push(newOrder);
-
-    return NextResponse.json(newOrder, { status: 201 });
+    return NextResponse.json({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      id: newOrder._id.toString(),
+      customer: newOrder.customer,
+      item: newOrder.item,
+      status: newOrder.status
+    }, { status: 201 });
   } catch (error) {
     console.error('Error processing POST request:', error);
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
