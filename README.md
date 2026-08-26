@@ -1,29 +1,59 @@
-# Create T3 App
+# 📚 StationaryStories
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+StationaryStories is a modern, data-driven dashboard designed specifically for campus stationery shop owners. It helps you manage your inventory, track daily sales, and uncover actionable business opportunities using AI.
 
-## What's next? How do I make an app with this?
+## ✨ Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- **Dashboard Overview**: Get a bird's-eye view of your total revenue, active customers, and inventory value.
+- **Sales Analytics**: Visualize revenue trends and sales distributions across different categories (Xerox/Prints, Stationary, Books) using interactive charts.
+- **AI Business Insights**: Powered by the **Google Gemini API**, the dashboard analyzes your current stock and sales data to generate smart, data-driven recommendations on what to restock, bundle, or promote next.
+- **Inventory & Order Management**: APIs to track stock levels and fulfill customer orders.
 
+## 🛠️ Tech Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+This project is bootstrapped with the [T3 Stack](https://create.t3.gg/) and utilizes the following technologies:
+- **[Next.js](https://nextjs.org)** (App Router)
+- **[TypeScript](https://www.typescriptlang.org/)** for end-to-end type safety
+- **[Tailwind CSS](https://tailwindcss.com)** for styling
+- **[MongoDB & Mongoose](https://mongoosejs.com/)** for the database
+- **[Google Gemini API](https://ai.google.dev/)** for generating AI insights
+- **[Recharts](https://recharts.org/)** for data visualization
+- **[Vercel](https://vercel.com)** for seamless deployment
 
-## Learn More
+## 🚀 Getting Started Locally
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Prathmesh125/StationaryStories.git
+   cd StationaryStories
+   ```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+3. **Set up Environment Variables:**
+   Copy `.env.example` to `.env` and fill in the required values:
+   ```bash
+   cp .env.example .env
+   ```
+   Add your keys:
+   ```env
+   MONGODB_URI="your_mongodb_connection_string"
+   GEMINI_API_KEY="your_google_gemini_api_key"
+   ```
 
-## How do I deploy this?
+4. **Run the development server:**
+   ```bash
+   pnpm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the dashboard.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
-# StationaryStories
+## ☁️ Deployment
+
+This project is designed to be easily deployed on **Vercel**.
+
+1. Import your GitHub repository to Vercel.
+2. In the deployment settings, add your `MONGODB_URI` and `GEMINI_API_KEY` to the **Environment Variables**. *(Make sure you don't include quotes around the values!)*
+3. Click **Deploy**. Vercel will automatically build the Next.js app and deploy your live dashboard.
