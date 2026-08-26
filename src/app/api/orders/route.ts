@@ -5,7 +5,7 @@ import Order from '@/models/Order';
 export async function GET() {
   try {
     await connectDB();
-    const orders = await Order.find({});
+    const orders = await Order.find();
     
     const formattedOrders = orders.map(order => ({
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access

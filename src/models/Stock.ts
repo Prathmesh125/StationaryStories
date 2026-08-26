@@ -14,4 +14,4 @@ const StockSchema: Schema = new Schema({
   predicted: { type: Number, required: true, default: 0 },
 });
 
-export default mongoose.models.Stock || mongoose.model<IStock>("Stock", StockSchema);
+export default (mongoose.models.Stock as mongoose.Model<IStock>) || mongoose.model<IStock>("Stock", StockSchema);

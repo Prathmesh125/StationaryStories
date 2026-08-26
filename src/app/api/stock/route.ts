@@ -5,7 +5,7 @@ import Stock from '@/models/Stock';
 export async function GET() {
   try {
     await connectDB();
-    const stockData = await Stock.find({});
+    const stockData = await Stock.find();
     return NextResponse.json(stockData);
   } catch (error) {
     console.error('Error fetching stock:', error);
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const allStock = await Stock.find({});
+    const allStock = await Stock.find();
     return NextResponse.json(allStock);
   } catch (error) {
     console.error('Error updating stock:', error);
